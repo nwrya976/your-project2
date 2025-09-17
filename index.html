@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📋 نظام إدارة المشاريع</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <style>
+        /* 🎨 التنسيقات العامة والمحسّنة */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #1f1f2e, #12121c);
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            direction: rtl;
+            scroll-behavior: smooth;
+            transition: background 0.5s ease, color 0.5s ease;
+        }
+        /* 🌙 وضع الإضاءة (Light Mode) */
+        body.light-mode {
+            background: #f0f0f0;
+            color: #111;
+        }
+        body.light-mode .container {
+            background: #ffffff;
+            border: 1px solid #ccc;
+            color: #111;
+        }
+        body.light-mode h1, body.light-mode h2, body.light-mode h3 {
+            color: #2193b0;
+            -webkit-text-fill-color: #2193b0;
+        }
+        body.light-mode button {
+            background: linear-gradient(135deg, #00b09b, #96c93d);
+            color: #fff;
+        }
+        body.light-mode button.delete {
+            background: #e74c3c;
+        }
+        body.light-mode .project, body.light-mode .day {
+            background: #e6f4ea;
+            border: 1px solid #28a745;
+            color: #155724;
+        }
+        body.light-mode .project:hover, body.light-mode .day:hover {
+            background: #d4e9da;
+        }
+        body.light-mode input, body.light-mode textarea {
+            background-color: #fff;
+            color: #000;
+            border-color: #bbb;
+        }
+        /* زر تغيير الوضع (Mode Toggle) */
+        .theme-toggle {
+            background: none;
+            color: #e0e0e0;
+            font-size: 1.5rem;
+            width: 40px; /* تحديد عرض ثابت */
+            height: 40px; /* تحديد ارتفاع ثابت */
+            border-radius: 50%; /* جعله دائريًا */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            transition: color 0.3s, background 0.3s;
+        }
+        body.light-mode .theme-toggle {
+            color: #2c3e50;
+        }
+        /* صندوق الكونتينر */
+        .container {
+            background: rgba(40, 44, 52, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(6px);
+            padding: 40px 35px;
+            border-radius: 20px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+            width: 95%;
+            max-width: 850px;
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            animation: fadeInUp 0.6s ease-out;
+            margin-top: 80px;
+        }
+        .container:hover {
+            transform: scale(1.005);
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
+        }
+        /* العنوان الرئيسي */
+        h1 {
+            color: #ffffff;
+            font-size: 36px;
+            margin-bottom: 25px;
+            background: linear-gradient(to right, #6dd5ed, #2193b0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+        h2, h3 {
+            color: #ffffff;
+            background: linear-gradient(to right, #6dd5ed, #2193b0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.5rem;
+            margin-top: 0;
+        }
+        /* الأزرار */
+        button {
+            background: linear-gradient(135deg, #00b09b, #96c93d);
+            color: #fff;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            margin-right: 5px;
+            box-shadow: 0 5px 16px rgba(0, 255, 180, 0.3);
+        }
+        button:hover {
+            background: linear-gradient(135deg, #00816a, #7db515);
+            box-shadow: 0 8px 22px rgba(0, 255, 180, 0.4);
+            transform: translateY(-1px);
+        }
+        button.delete {
+            background: #e74c3c;
+            box-shadow: 0 5px 16px rgba(231, 76, 60, 0.3);
+        }
+        button.delete:hover {
+            background: #c0392b;
+            box-shadow: 0 8px 22px rgba(231, 76, 60, 0.4);
+        }
+        button.back {
+            background: linear-gradient(135deg, #8e44ad, #9b59b6);
+            box-shadow: 0 5px 16px rgba(155, 89, 182, 0.3);
+        }
+        button.back:hover {
+            background: linear-gradient(135deg, #6c3483, #8e44ad);
+        }
+        .project, .day {
+            padding: 15px;
+            background: #282c34;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 14px;
+            margin: 10px 0;
+            transition: background 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .project:hover, .day:hover {
+            background: #343a40;
+            cursor: pointer;
+        }
+        .progress-bar {
+            background: #1d1f27;
+            border-radius: 8px;
+            height: 25px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        .progress {
+            background: linear-gradient(to right, #00b09b, #96c93d);
+            height: 100%;
+            border-radius: 8px;
+            width: 0%;
+            color: white;
+            text-align: center;
+            line-height: 25px;
+            font-size: 14px;
+            transition: width 0.5s ease-in-out;
+        }
+        .hidden {
+            display: none;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 10px;
+            border: 1px solid #444;
+            background-color: #1d1f27;
+            color: #fff;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        input:focus, textarea:focus {
+            border-color: #6dd5ed;
+            outline: none;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            display: block;
+        }
+        th, td {
+            border: 1px solid #444;
+            padding: 10px;
+            text-align: right;
+            white-space: nowrap;
+        }
+        th {
+            background: #1d1f27;
+            color: #e0e0e0;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .day-details {
+            margin-top: 15px;
+            display: none;
+            background: #22262b;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        img, video {
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 8px;
+            margin: 5px;
+            cursor: pointer;
+            border: 2px solid #ddd;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        img:hover, video:hover {
+            transform: scale(1.05);
+            border-color: #3498db;
+        }
+        .fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .fullscreen img, .fullscreen video {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 0;
+        }
+        #searchInput, #searchDayInput {
+            padding: 12px;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        /* Auth Page Styles */
+        .auth-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            color: #333;
+            margin-top: 50px;
+        }
+        .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+        .auth-container h1 {
+            color: #333;
+            margin-bottom: 2rem;
+            font-size: 1.5rem;
+            background: none;
+            -webkit-text-fill-color: #333;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: right;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-weight: 500;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            text-align: right;
+            background: white;
+            color: #333;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 2rem;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: #f7f7f7;
+            color: #333;
+            border: 2px solid #ddd;
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-secondary:hover {
+            background: #e7e7e7;
+            transform: translateY(-2px);
+        }
+        .success-message {
+            display: none;
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid #c3e6cb;
+        }
+        .error-message {
+            display: none;
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid #f5c6cb;
+        }
+        .form-toggle {
+            margin-top: 1rem;
+            color: #666;
+        }
+        .form-toggle a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .form-toggle a:hover {
+            text-decoration: underline;
+        }
+        .user-info {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            text-align: right;
+            color: #333;
+        }
+        .user-header {
+            background: rgba(40, 44, 52, 0.95);
+            color: #e0e0e0;
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        body.light-mode .user-header {
+            background: #ffffff;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        /* Developer Info Footer */
+        .developer-info {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #888;
+            padding: 10px;
+            border-top: 1px solid #333;
+            width: 100%;
+        }
+        body.light-mode .developer-info {
+            color: #555;
+            border-top: 1px solid #ccc;
+        }
+        .developer-info a {
+            color: #6dd5ed;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .developer-info a:hover {
+            color: #2193b0;
+            text-decoration: underline;
+        }
+        /* 📱 تنسيقات الهواتف (تجاوبي) */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @media(max-width: 600px) and (orientation: portrait) {
+            .flex-between {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .button-group {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+            }
+            .button-group button {
+                width: 100%;
+                margin: 8px 0;
+            }
+            button {
+                width: 100%;
+                margin: 8px 0;
+            }
+            .container {
+                padding: 25px 20px;
+                border-radius: 12px;
+            }
+            h1 {
+                font-size: 26px;
+            }
+            .user-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+            .theme-toggle {
+                top: 10px;
+                left: 10px;
+                font-size: 1.2rem;
+            }
+        }
+        #sharePage .flex-between,
+        #sharePage .button-group {
+            display: none !important;
+        }
+
+
+    </style>
+</head>
+<body>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+
+<div id="darkModeToggle" class="theme-toggle">
+    <i class="fas fa-adjust"></i>
+</div>
+
+<div class="auth-container" id="authPage">
+    <div class="icon">📋</div>
+    <h1 id="form-title">تسجيل الدخول</h1>
+    
+    <div id="success-msg" class="success-message"></div>
+    <div id="error-msg" class="error-message"></div>
+
+    <form id="auth-form">
+        <div class="form-group">
+            <label for="email">البريد الإلكتروني:</label>
+            <input type="email" id="email" name="email" placeholder="Your-Name@gmail.com" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">كلمة المرور:</label>
+            <input type="password" id="password" name="password" placeholder="••••••••" required>
+            <a href="#" style="font-size: 0.9rem; color: #667eea; text-decoration: underline; display: block; text-align: right; margin-top: 10px;" onclick="resetPassword(); return false;" id="forgot-password-link">هل نسيت كلمة المرور؟</a>
+        </div>
+
+        <div class="form-group hidden" id="confirm-password-group">
+            <label for="confirm-password">تأكيد كلمة المرور:</label>
+            <input type="password" id="confirm-password" name="confirm-password" placeholder="••••••••">
+        </div>
+
+        <div class="button-group">
+            <button type="button" id="login-btn" class="btn-primary">تسجيل دخول</button>
+            <button type="button" id="signup-btn" class="btn-primary hidden">إنشاء حساب</button>
+        </div>
+    </form>
+
+    <div class="form-toggle">
+        <p id="toggle-text">ليس لديك حساب؟ <a href="#" id="toggle-link">إنشاء حساب جديد</a></p>
+    </div>
+</div>
+
+<div class="container hidden" id="mainPage">
+    <div class="user-header">
+        <div>
+            <h2 style="margin: 0;">مرحباً، <span id="user-display-name"></span>! 🙋‍♂️</h2>
+            <small id="user-display-email"></small>
+        </div>
+        <button id="logout-btn" class="btn-secondary" style="margin: 0;">تسجيل الخروج</button>
+    </div>
+    
+    <h1>📋 قائمة المشاريع</h1>
+    <input type="text" id="searchInput" placeholder="🔍 بحث عن مشروع..." onkeyup="searchProjects()">
+    <div id="projectList"></div>
+    <button onclick="showAddProject()">➕ إضافة مشروع</button>
+    <div id="addProjectForm" class="hidden">
+        <input type="text" id="projectName" placeholder="اسم المشروع">
+        <input type="number" id="projectDuration" placeholder="مدة المشروع (بالأيام)">
+        <input type="number" id="projectCost" placeholder="تكلفة المشروع">
+        <button onclick="addProject()">حفظ</button>
+    </div>
+</div>
+
+<div class="container hidden" id="projectPage">
+    <div class="flex-between">
+        <button class="back" onclick="backToProjects()">⬅ رجوع</button>
+        <div class="button-group">
+            <button onclick="editProject()">✏ تعديل</button>
+            <button class="delete" onclick="deleteProject()">🗑 حذف</button>
+        </div>
+    </div>
+    <h2 id="projTitle"></h2>
+    <div class="progress-bar"><div class="progress" id="projProgress"></div></div>
+    <h3 id="daysLeft"></h3>
+    <h3 id="projCost"></h3>
+
+    <div id="paymentsSection">
+        <h3>💵 الدفعات</h3>
+        <div id="paymentsList"></div>
+        <button onclick="addPayment()">➕ إضافة دفعة</button>
+        <h3 id="remainingCost"></h3>
+    </div>
+
+    <h2>📅 الأيام</h2>
+    <input type="date" id="searchDayInput" onchange="searchDays()">
+    <div id="daysList"></div>
+    <button onclick="addDay()">➕ إضافة يوم</button>
+    <br><br>
+    <button onclick="shareProject()">🔗 مشاركة (عرض فقط)</button>
+</div>
+
+<div class="container hidden" id="dayPage">
+    <button class="back" onclick="backToProject()">⬅ رجوع للمشروع</button>
+    <h2 id="dayDate"></h2>
+    <label>🔨 عمل اليوم</label>
+    <textarea id="workDescription"></textarea>
+    <label>👷 الكادر</label>
+    <textarea id="workersDetail"></textarea>
+    <label>💰 المبالغ</label>
+    <textarea id="costDetail"></textarea>
+    
+    <h3>📸 الصور </h3>
+    <input type="file" id="mediaInput" multiple accept="image/*,video/*">
+    <div id="mediaList"></div>
+<button onclick="saveDay()">💾 حفظ / تعديل</button>
+</div>
+
+<div class="container hidden" id="sharePage">
+    <div class="flex-between">
+        <button class="back" onclick="backToProjectPageFromShare()">⬅ رجوع للمشروع</button>
+        <button class="back" onclick="backToProjects()">⬅ رجوع للقائمة</button>
+    </div>
+    <h2 id="shareProjTitle"></h2>
+    <div class="progress-bar"><div class="progress" id="shareProjProgress"></div></div>
+    <h3 id="shareDaysLeft"></h3>
+    <h3 id="shareProjCost"></h3>
+    <h3>💵 الدفعات</h3>
+    <div id="sharePaymentsList"></div>
+    <h2>📅 الأيام</h2>
+    <div id="shareDaysList"></div>
+</div>
+
+<div class="developer-info">
+    <p>تطوير: المهندس كاظم قاسم</p>
+    <p>رقم الهاتف: <a href="tel:07746424814">07746424814</a></p>
+</div>
+
+<script>
+    // ========== نظام إدارة المشاريع - JavaScript Code ==========
+    
+    // ** استبدل هذا الكود بكود مشروعك من Firebase **
+    const firebaseConfig = {
+  apiKey: "AIzaSyDye4DgqNvEwwWDYf1yjW5yfJc14p1LmiU",
+  authDomain: "your-project-10fbe.firebaseapp.com",
+  databaseURL: "https://your-project-10fbe-default-rtdb.firebaseio.com",
+  projectId: "your-project-10fbe",
+  storageBucket: "your-project-10fbe.firebasestorage.app",
+  messagingSenderId: "715972050011",
+  appId: "1:715972050011:web:d5a4507dcfc30fa779d37e",
+  measurementId: "G-D1FRL391R4"
+};
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
+
+    // Global Variables
+    let projects = [];
+    let currentProjectIndex = null;
+    let currentDayIndex = null;
+    let currentUser = null;
+
+    // UI Elements
+    const authPage = document.getElementById('authPage');
+    const mainPage = document.getElementById('mainPage');
+    const projectPage = document.getElementById('projectPage');
+    const dayPage = document.getElementById('dayPage');
+    const sharePage = document.getElementById('sharePage');
+    const form = document.getElementById('auth-form');
+    const formTitle = document.getElementById('form-title');
+    const loginBtn = document.getElementById('login-btn');
+    const signupBtn = document.getElementById('signup-btn');
+    const toggleLink = document.getElementById('toggle-link');
+    const toggleText = document.getElementById('toggle-text');
+    const confirmPasswordGroup = document.getElementById('confirm-password-group');
+    const successMsg = document.getElementById('success-msg');
+    const errorMsg = document.getElementById('error-msg');
+    const logoutBtn = document.getElementById('logout-btn');
+    const userDisplayName = document.getElementById('user-display-name');
+    const userDisplayEmail = document.getElementById('user-display-email');
+    // تعديل السطر لاختيار العنصر بالـ ID الجديد
+    const forgotPasswordLink = document.getElementById('forgot-password-link'); 
+
+    
+    let isLoginMode = true;
+    
+    // Check for user login state
+    // Check for user login state
+auth.onAuthStateChanged(user => {
+    if (handleShareLink()) {
+        // Do nothing, the shared link has been handled
+        return;
+    }
+    
+    if (user) {
+        currentUser = user;
+        showMainApp();
+        loadProjects();
+    } else {
+        currentUser = null;
+        hideAllPages();
+        authPage.classList.remove('hidden');
+    }
+});
+
+// Initial check for shared links
+handleShareLink();
+
+    // Message functions
+    function showSuccess(message) {
+        successMsg.textContent = message;
+        successMsg.style.display = 'block';
+        errorMsg.style.display = 'none';
+        setTimeout(() => {
+            successMsg.style.display = 'none';
+        }, 3000);
+    }
+
+    function showError(message) {
+        errorMsg.textContent = message;
+        errorMsg.style.display = 'block';
+        successMsg.style.display = 'none';
+        setTimeout(() => {
+            errorMsg.style.display = 'none';
+        }, 3000);
+    }
+    
+    // Auth functions
+   function toggleMode() {
+    isLoginMode = !isLoginMode;
+    if (isLoginMode) {
+        formTitle.textContent = 'تسجيل الدخول';
+        loginBtn.classList.remove('hidden');
+        signupBtn.classList.add('hidden');
+        confirmPasswordGroup.classList.add('hidden');
+
+        // إظهار رابط نسيان كلمة المرور (عرض بلوك لأنك تستخدم display:block أصلاً)
+        if (forgotPasswordLink) forgotPasswordLink.style.display = 'block';
+
+        toggleText.innerHTML = 'ليس لديك حساب؟ <a href="#" id="toggle-link">إنشاء حساب جديد</a>';
+    } else {
+        formTitle.textContent = 'إنشاء حساب جديد';
+        signupBtn.classList.remove('hidden');
+        loginBtn.classList.add('hidden');
+        confirmPasswordGroup.classList.remove('hidden');
+
+        // إخفاء رابط نسيان كلمة المرور
+        if (forgotPasswordLink) forgotPasswordLink.style.display = 'none';
+
+        toggleText.innerHTML = 'لديك حساب؟ <a href="#" id="toggle-link">تسجيل الدخول</a>';
+    }
+
+    // تأكد من إعادة ربط حدث الضغط على رابط التبديل (مرة واحدة كل تغيير)
+    const newToggleLink = document.getElementById('toggle-link');
+    if (newToggleLink) {
+        newToggleLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            toggleMode();
+        });
+    }
+}
+
+
+    function login(email, password) {
+        auth.signInWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                showSuccess('تم تسجيل الدخول بنجاح! 🎉');
+            })
+            .catch((error) => {
+                const errorMessage = error.message;
+                showError('حدث خطأ أثناء تسجيل الدخول. تأكد من البريد الإلكتروني وكلمة المرور.');
+                console.error("Login error: ", errorMessage);
+            });
+    }
+
+    function signup(email, password, confirmPassword) {
+        if (password !== confirmPassword) {
+            showError('كلمات المرور غير متطابقة ❌');
+            return false;
+        }
+        if (password.length < 6) {
+            showError('كلمة المرور يجب أن تكون 6 أحرف على الأقل ❌');
+            return false;
+        }
+
+        auth.createUserWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                const user = userCredential.user;
+                database.ref('users/' + user.uid).set({
+                    email: email,
+                    name: email.split('@')[0]
+                }).then(() => {
+                    showSuccess('تم إنشاء الحساب بنجاح! 🎉 يمكنك الآن تسجيل الدخول');
+                    setTimeout(() => {
+                        toggleMode();
+                        document.getElementById('email').value = email;
+                    }, 1000);
+                });
+            })
+            .catch((error) => {
+                const errorMessage = error.message;
+                if (errorMessage.includes("email-already-in-use")) {
+                    showError('هذا البريد الإلكتروني مستخدم بالفعل ❌');
+                } else {
+                    showError('حدث خطأ أثناء إنشاء الحساب. حاول مرة أخرى.');
+                }
+                console.error("Signup error: ", errorMessage);
+            });
+    }
+
+    function hideAllPages() {
+        authPage.classList.add('hidden');
+        mainPage.classList.add('hidden');
+        projectPage.classList.add('hidden');
+        dayPage.classList.add('hidden');
+        sharePage.classList.add('hidden');
+    }
+
+    function showMainApp() {
+        hideAllPages();
+        mainPage.classList.remove('hidden');
+        userDisplayName.textContent = currentUser.displayName || currentUser.email.split('@')[0];
+        userDisplayEmail.textContent = currentUser.email;
+    }
+
+    function logout() {
+        auth.signOut()
+            .then(() => {
+                showSuccess('تم تسجيل الخروج بنجاح! 👋');
+            })
+            .catch((error) => {
+                showError('حدث خطأ أثناء تسجيل الخروج.');
+                console.error("Logout error: ", error);
+            });
+    }
+
+    // Auth Event Listeners
+    loginBtn.addEventListener('click', function() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        if (!email || !password) {
+            showError('يرجى ملء جميع الحقول المطلوبة ❌');
+            return;
+        }
+        login(email, password);
+    });
+
+    signupBtn.addEventListener('click', function() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+        if (!email || !password) {
+            showError('يرجى ملء جميع الحقول المطلوبة ❌');
+            return;
+        }
+        if (!isLoginMode && !confirmPassword) {
+            showError('يرجى تأكيد كلمة المرور ❌');
+            return;
+        }
+        if (isLoginMode) {
+            login(email, password);
+        } else {
+            signup(email, password, confirmPassword);
+        }
+    });
+
+    toggleLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        toggleMode();
+    });
+
+    logoutBtn.addEventListener('click', logout);
+
+    form.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (isLoginMode) {
+                loginBtn.click();
+            } else {
+                signupBtn.click();
+            }
+        }
+    });
+
+    // ========== Project Management Functions with Firebase ==========
+    
+    // Load projects from Firebase
+    function loadProjects() {
+        if (!currentUser) return;
+        const projectsRef = database.ref(`projects/${currentUser.uid}`);
+        
+        projectsRef.on('value', snapshot => {
+            const data = snapshot.val();
+            projects = [];
+            if (data) {
+                projects = Object.keys(data).map(key => ({
+                    id: key,
+                    ...data[key]
+                }));
+            }
+            renderProjects();
+        });
+    }
+
+    // Save project data to Firebase
+    function saveProject(projectData) {
+        return new Promise((resolve, reject) => {
+            if (!currentUser) {
+                showError("خطأ: لم يتم تسجيل الدخول.");
+                return reject("No user logged in.");
+            }
+            const projectsRef = database.ref(`projects/${currentUser.uid}`);
+            
+            if (projectData.id) {
+                const projectId = projectData.id;
+                delete projectData.id;
+                projectsRef.child(projectId).update(projectData).then(() => {
+                    showSuccess("تم تحديث المشروع بنجاح!");
+                    resolve();
+                }).catch(error => {
+                    console.error("Error updating project: ", error);
+                    showError("حدث خطأ أثناء تحديث المشروع.");
+                    reject(error);
+                });
+            } else {
+                projectsRef.push(projectData).then(() => {
+                    showSuccess("تم إضافة المشروع بنجاح!");
+                    resolve();
+                }).catch(error => {
+                    console.error("Error adding new project: ", error);
+                    showError("حدث خطأ أثناء إضافة المشروع.");
+                    reject(error);
+                });
+            }
+        });
+    }
+    
+    // === عرض المشاريع
+    function renderProjects(){
+        const list=document.getElementById("projectList"); list.innerHTML="";
+        if (projects.length === 0) {
+            list.innerHTML = "<p>لا يوجد مشاريع. ابدأ بإضافة مشروع جديد!</p>";
+            return;
+        }
+        projects.forEach((p,i)=>{
+            let progress = Math.round(((p.days ? p.days.length : 0) / p.duration) * 100);
+            
+            let totalSpent = (p.payments || []).reduce((sum, pr) => sum + pr.amount, 0);
+            let totalDayCost = (p.days || []).reduce((sum, d) => {
+                const numbers = (d.costDetail || "").match(/\d+/g);
+                if (numbers) {
+                    return sum + numbers.reduce((daySum, num) => daySum + parseInt(num), 0);
+                }
+                return sum;
+            }, 0);
+            let grandTotal = totalDayCost;
+            
+            const div=document.createElement("div");
+            div.className="project flex-between";
+            div.innerHTML=`<b>${p.name}</b><span>💰 ${grandTotal.toLocaleString()} | 📊 ${progress}%</span>`;
+            div.onclick=()=>openProject(i);
+            list.appendChild(div);
+        });
+    }
+    function searchProjects(){
+        const query=document.getElementById("searchInput").value.toLowerCase();
+        const list=document.getElementById("projectList");
+        list.innerHTML = "";
+        
+        const filteredProjects = projects.filter(p => p.name.toLowerCase().includes(query));
+
+        if (filteredProjects.length === 0) {
+            list.innerHTML = "<p>لا يوجد مشاريع تطابق البحث.</p>";
+            return;
+        }
+        
+        filteredProjects.forEach((p, i) => {
+            let progress = Math.round(((p.days ? p.days.length : 0) / p.duration) * 100);
+            let totalSpent = (p.payments || []).reduce((sum, pr) => sum + pr.amount, 0);
+            let totalDayCost = (p.days || []).reduce((sum, d) => {
+                const numbers = (d.costDetail || "").match(/\d+/g);
+                if (numbers) {
+                    return sum + numbers.reduce((daySum, num) => daySum + parseInt(num), 0);
+                }
+                return sum;
+            }, 0);
+            let grandTotal = totalSpent + totalDayCost;
+
+            const div = document.createElement("div");
+            div.className = "project flex-between";
+            div.innerHTML = `<b>${p.name}</b><span>💰 ${grandTotal.toLocaleString()} | 📊 ${progress}%</span>`;
+            div.onclick = () => {
+                const originalIndex = projects.findIndex(proj => proj.id === p.id);
+                openProject(originalIndex);
+            };
+            list.appendChild(div);
+        });
+    }
+    function showAddProject(){ document.getElementById("addProjectForm").classList.remove("hidden"); }
+    function addProject(){
+        let name = document.getElementById("projectName").value;
+        let duration = parseInt(document.getElementById("projectDuration").value);
+        let cost = parseInt(document.getElementById("projectCost").value);
+        if(!name || !duration || !cost){alert("أدخل الحقول كاملة");return;}
+        
+        const newProject = {
+            name,
+            duration,
+            cost,
+            startDate: new Date().toISOString().split("T")[0],
+            days: [],
+            payments: []
+        };
+        saveProject(newProject);
+        
+        document.getElementById("addProjectForm").classList.add("hidden");
+        document.getElementById("projectName").value = "";
+        document.getElementById("projectDuration").value = "";
+        document.getElementById("projectCost").value = "";
+    }
+    function editProject(){
+        let p = projects[currentProjectIndex];
+        let newName = prompt("✏ تعديل اسم المشروع:", p.name);
+        if(newName) p.name = newName;
+        let newCost = prompt("✏ تعديل تكلفة المشروع:", p.cost);
+        if(newCost && !isNaN(newCost)) p.cost = parseInt(newCost);
+        let newDuration = prompt("✏ تعديل مدة المشروع بالأيام:", p.duration);
+        if(newDuration && !isNaN(newDuration)) p.duration = parseInt(newDuration);
+        
+        saveProject(p).then(() => {
+            openProject(currentProjectIndex);
+        });
+    }
+ function deleteProject(){
+        const projectsRef = database.ref(`projects/${currentUser.uid}`);
+        projectsRef.child(projects[currentProjectIndex].id).remove().then(() => {
+            showSuccess("تم حذف المشروع بنجاح!");
+            backToProjects();
+        }).catch(error => {
+            console.error("Error removing project: ", error);
+            showError("حدث خطأ أثناء حذف المشروع.");
+        });
+    }
+    
+    // === فتح مشروع
+    function openProject(i){
+        currentProjectIndex = i;
+        mainPage.classList.add("hidden");
+        projectPage.classList.remove("hidden");
+        let p = projects[i];
+        document.getElementById("projTitle").innerText = p.name;
+        let progress = Math.round(((p.days ? p.days.length : 0) / p.duration) * 100);
+        let bar = document.getElementById("projProgress");
+        bar.style.width = progress + "%";
+        bar.innerText = progress + "%";
+        let start = new Date(p.startDate);
+        let end = new Date(start);
+        end.setDate(start.getDate() + p.duration);
+        let left = Math.max(0, Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24)));
+        document.getElementById("daysLeft").innerText = "⏳ متبقي " + left + " يوم";
+        document.getElementById("projCost").innerText = "💰 التكلفة: " + p.cost.toLocaleString();
+        
+        renderPayments();
+        renderDays();
+    }
+    function backToProjects(){
+        projectPage.classList.add("hidden");
+        dayPage.classList.add("hidden");
+        sharePage.classList.add("hidden");
+        mainPage.classList.remove("hidden");
+        renderProjects();
+    }
+    function backToProjectPageFromShare(){
+        sharePage.classList.add("hidden");
+        projectPage.classList.remove("hidden");
+    }
+    
+    // === الدفعات
+     function renderPayments(){
+        let p = projects[currentProjectIndex];
+        const list = document.getElementById("paymentsList");
+        list.innerHTML = "";
+        (p.payments || []).forEach((pay, index) => {
+            const div = document.createElement("div");
+            div.style.display = "flex";
+            div.style.justifyContent = "space-between";
+            div.style.alignItems = "center";
+            div.style.marginBottom = "5px";
+            div.innerHTML = `
+                <span>💵 ${pay.amount.toLocaleString()} | 📅 ${pay.date}</span>
+                <button class="delete">✖</button>
+            `;
+            div.querySelector("button").onclick = () => {
+                p.payments.splice(index, 1);
+                saveProject(p).then(() => {
+                    renderPayments();
+                });
+            };
+            list.appendChild(div);
+        });
+    
+        
+        let totalPaid = (p.payments || []).reduce((sum, pr) => sum + pr.amount, 0);
+        let remaining = p.cost - totalPaid;
+        document.getElementById("remainingCost").innerText = "المتبقي: " + remaining.toLocaleString();
+    }
+    function addPayment(){
+        let p = projects[currentProjectIndex];
+        let amount = parseInt(prompt("💵 مبلغ الدفعة:"));
+        if(!amount || isNaN(amount)) return;
+        let today = new Date().toISOString().split("T")[0];
+        if(!p.payments) p.payments = [];
+        p.payments.push({amount, date: today});
+        saveProject(p).then(() => {
+            renderPayments();
+        });
+    }
+
+    // === الأيام
+    function renderDays(){
+        const list=document.getElementById("daysList");
+        list.innerHTML="";
+        let p=projects[currentProjectIndex];
+        (p.days || []).forEach((d,i)=>{
+            const div=document.createElement("div");
+            div.className="day";
+            div.innerHTML=`
+                <div class="flex-between" onclick="toggleDayDetails(${i})">
+                    <b>اليوم ${i+1} - ${d.date} (${getDayName(d.date)})</b>
+                    <span>⬇ التفاصيل</span>
+                </div>
+                <div id="details-${i}" class="day-details">
+                    <table>
+                        <tr><th>🔨 العمل</th><td>${(d.workDescription||"-").replace(/\n/g,"<br>")}</td></tr>
+                        <tr><th>👷 الكادر</th><td>${(d.workersDetail||"-").replace(/\n/g,"<br>")}</td></tr>
+                        <tr><th>💰 المبالغ</th><td>${(d.costDetail||"-").replace(/\n/g,"<br>")}</td></tr>
+                    </table>
+                    <div>
+    ${(d.media||[]).map((src,j)=>`
+        <img src="${src}" onclick="openFullscreen('${src}')">
+    `).join("")}
+</div>
+                    <button onclick="openDay(${i})">✏ تعديل</button>
+                    <button class="delete" onclick="deleteDay(${i});event.stopPropagation();">🗑 حذف اليوم</button>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+    }
+    function searchDays(){
+        const query=document.getElementById("searchDayInput").value.toLowerCase();
+        const list=document.getElementById("daysList");
+        list.innerHTML="";
+        const filteredDays = projects[currentProjectIndex].days.filter(d => {
+            const dayString = JSON.stringify(d).toLowerCase();
+            return dayString.includes(query);
+        });
+
+        if (filteredDays.length === 0) {
+            list.innerHTML = "<p>لا يوجد أيام تطابق البحث.</p>";
+            return;
+        }
+
+        filteredDays.forEach((d, i) => {
+            // Find the original index to use for actions
+            const originalIndex = projects[currentProjectIndex].days.findIndex(day => day === d);
+            const div = document.createElement("div");
+            div.className = "day";
+            div.innerHTML=`
+                <div class="flex-between" onclick="toggleDayDetails(${originalIndex})">
+                    <b>اليوم ${originalIndex+1} - ${d.date} (${getDayName(d.date)})</b>
+                    <span>⬇ التفاصيل</span>
+                </div>
+                <div id="details-${originalIndex}" class="day-details">
+                    <table>
+                        <tr><th>🔨 العمل</th><td>${(d.workDescription||"-").replace(/\n/g,"<br>")}</td></tr>
+                        <tr><th>👷 الكادر</th><td>${(d.workersDetail||"-").replace(/\n/g,"<br>")}</td></tr>
+                        <tr><th>💰 المبالغ</th><td>${(d.costDetail||"-").replace(/\n/g,"<br>")}</td></tr>
+                    </table>
+                    <div>
+    ${(d.media||[]).map(src=>`<img src="${src}" onclick="openFullscreen('${src}')">`).join("")}
+</div>
+                    <button onclick="openDay(${originalIndex})">✏ تعديل</button>
+                    <button class="delete" onclick="deleteDay(${originalIndex});event.stopPropagation();">🗑 حذف اليوم</button>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+    }
+    
+    // === تفاصيل اليوم + الصور
+    function toggleDayDetails(i){ let el=document.getElementById("details-"+i); el.style.display=el.style.display==="block"?"none":"block"; }
+    function getDayName(dateStr){ const days=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"]; return days[new Date(dateStr).getDay()]; }
+    function addDay(){ 
+        let p = projects[currentProjectIndex];
+        let today = new Date().toISOString().split("T")[0]; 
+        if (!p.days) p.days = [];
+        p.days.push({date:today,workDescription:"",workersDetail:"",costDetail:"",media:[]}); 
+        saveProject(p).then(() => { renderDays(); });
+    }
+  function deleteDay(i){ 
+    if(confirm("هل تريد حذف هذا اليوم؟")){ 
+        let p = projects[currentProjectIndex];
+        // قم بحذف اليوم من المصفوفة
+        p.days.splice(i,1); 
+        // احفظ التغيير في قاعدة البيانات
+        saveProject(p).then(() => { 
+            // بعد الحفظ بنجاح، قم بتحديث عرض الأيام
+            renderDays();
+        });
+    } 
+}
+    function openDay(i){ 
+        currentDayIndex = i; 
+        projectPage.classList.add("hidden"); 
+        dayPage.classList.remove("hidden"); 
+        let d = projects[currentProjectIndex].days[i]; 
+        document.getElementById("dayDate").innerText = "📅 " + d.date + " (" + getDayName(d.date) + ")"; 
+        document.getElementById("workDescription").value = d.workDescription || ""; 
+        document.getElementById("workersDetail").value = d.workersDetail || ""; 
+        document.getElementById("costDetail").value = d.costDetail || ""; 
+        renderMedia(); 
+    }
+    function backToProject(){ 
+        dayPage.classList.add("hidden"); 
+        projectPage.classList.remove("hidden"); 
+        renderDays(); 
+    }
+   function saveDay(){ 
+        let p = projects[currentProjectIndex];
+        let d = p.days[currentDayIndex];
+        d.workDescription = document.getElementById("workDescription").value; 
+        d.workersDetail = document.getElementById("workersDetail").value; 
+        d.costDetail = document.getElementById("costDetail").value; 
+        
+        let files = document.getElementById("mediaInput").files;
+        if (files.length === 0) {
+            saveProject(p).then(() => {
+                renderMedia();
+                alert("تم الحفظ!");
+            });
+            return;
+        }
+
+        let filesProcessed = 0;
+        for (let f of files) {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                let img = new Image();
+                img.onload = function() {
+                    let canvas = document.createElement('canvas');
+                    let ctx = canvas.getContext('2d');
+                    let maxWidth = 800;
+                    let maxHeight = 600;
+                    let ratio = Math.min(maxWidth / img.width, maxHeight / img.height);
+                    canvas.width = img.width * ratio;
+                    canvas.height = img.height * ratio;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    let compressedData = canvas.toDataURL('image/jpeg', 0.6);
+                    if (!d.media) d.media = [];
+                    d.media.push(compressedData);
+                    filesProcessed++;
+                    if (filesProcessed === files.length) {
+                        saveProject(p).then(() => {
+                            renderMedia();
+                            
+                        });
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(f);
+        }
+    }
+    function renderMedia(){ 
+    let d=projects[currentProjectIndex].days[currentDayIndex]; 
+    let container=document.getElementById("mediaList"); 
+    container.innerHTML=""; 
+    (d.media || []).forEach((src,j)=>{ 
+        let div=document.createElement("div"); 
+        div.style.display="inline-block"; 
+        div.style.position="relative"; 
+        let img=document.createElement("img"); 
+        img.src=src; 
+        img.onclick=()=>openFullscreen(src); 
+        let del=document.createElement("button"); 
+        del.innerText="x"; 
+        del.className="delete"; 
+        del.style.position="absolute"; 
+        del.style.top="0"; 
+        del.style.right="0"; 
+        del.onclick=(event)=>{
+            event.stopPropagation();
+            if (confirm("هل أنت متأكد من حذف هذه الصورة؟")) {
+                deleteImage(currentDayIndex,j);
+            }
+        }; 
+        div.appendChild(img); 
+        div.appendChild(del); 
+        container.appendChild(div); 
+    }); 
+}
+    function deleteImage(dayIndex,imgIndex){ 
+        let p = projects[currentProjectIndex];
+        let d = p.days[dayIndex];
+        d.media.splice(imgIndex,1); 
+        saveProject(p).then(() => { 
+            if(dayIndex===currentDayIndex) renderMedia(); 
+        });
+    }
+    function openFullscreen(src){ 
+        let fs=document.createElement("div"); 
+        fs.className="fullscreen"; 
+        let img=document.createElement("img"); 
+        img.src=src; 
+        fs.appendChild(img); 
+        fs.onclick=()=>fs.remove(); 
+        document.body.appendChild(fs); 
+    }
+    
+    // === مشاركة المشروع (مُعدَّل)
+   // This is the function you should use for sharing
+// This is the function you should use for sharing
+function shareProject() {
+    const shareOption = prompt("اختر نوع المشاركة:\n1. مشاركة جميع الأيام\n2. مشاركة أيام معينة");
+    let projectToShare = projects[currentProjectIndex];
+    let shareLink = window.location.origin + window.location.pathname + `?share=${projectToShare.id}`;
+
+    if (shareOption === "1") {
+        prompt("انسخ الرابط لمشاركة جميع الأيام:", shareLink);
+    } else if (shareOption === "2") {
+        showDaySelectionPopup();
+    } else {
+        return;
+    }
+}
+
+// New function to handle day selection and generate the correct link
+function showDaySelectionPopup() {
+    let popupContainer = document.createElement("div");
+    popupContainer.style.cssText = "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000;";
+
+    let popupContent = document.createElement("div");
+    popupContent.style.cssText = "background: #fff; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; text-align: right; direction: rtl;";
+
+    let title = document.createElement("h3");
+    title.innerText = "اختر الأيام للمشاركة:";
+    popupContent.appendChild(title);
+
+    let currentProject = projects[currentProjectIndex];
+    if (currentProject && currentProject.days) {
+        currentProject.days.forEach((day, index) => {
+            let dayDiv = document.createElement("div");
+            dayDiv.style.cssText = "margin-bottom: 10px;";
+
+            let checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.id = "day-" + index;
+            checkbox.style.marginLeft = "10px";
+
+            let label = document.createElement("label");
+            label.htmlFor = "day-" + index;
+            label.innerText = `اليوم ${index + 1} - ${day.date}`;
+
+            dayDiv.appendChild(checkbox);
+            dayDiv.appendChild(label);
+            popupContent.appendChild(dayDiv);
+        });
+    }
+
+    let buttonDiv = document.createElement("div");
+    buttonDiv.style.cssText = "display: flex; justify-content: space-around; margin-top: 20px;";
+
+    let shareBtn = document.createElement("button");
+    shareBtn.innerText = "إنشاء رابط المشاركة";
+    shareBtn.style.backgroundColor = "#2ecc71";
+    shareBtn.onclick = () => {
+        let selectedIndices = [];
+        popupContent.querySelectorAll("input[type='checkbox']").forEach((checkbox, index) => {
+            if (checkbox.checked) {
+                selectedIndices.push(index);
+            }
+        });
+
+        if (selectedIndices.length > 0) {
+            let projectId = projects[currentProjectIndex].id;
+            let daysString = selectedIndices.join(',');
+            let shareLink = window.location.origin + window.location.pathname + `?share=${projectId}&days=${daysString}`;
+            prompt("انسخ الرابط لمشاركة الأيام المحددة:", shareLink);
+        } else {
+            alert("لم يتم اختيار أي يوم.");
+        }
+        popupContainer.remove();
+    };
+
+    let cancelBtn = document.createElement("button");
+    cancelBtn.innerText = "إلغاء";
+    cancelBtn.style.backgroundColor = "#e74c3c";
+    cancelBtn.onclick = () => {
+        popupContainer.remove();
+    };
+
+    buttonDiv.appendChild(shareBtn);
+    buttonDiv.appendChild(cancelBtn);
+    popupContent.appendChild(buttonDiv);
+
+    popupContainer.appendChild(popupContent);
+    document.body.appendChild(popupContainer);
+}
+function resetPassword() {
+    // احصل على قيمة البريد الإلكتروني من حقل الإدخال
+    const email = document.getElementById("email").value;
+
+    // تحقق مما إذا كان حقل البريد الإلكتروني ليس فارغاً
+    if (email) {
+        // استخدم Firebase لإرسال رابط إعادة تعيين كلمة المرور
+        auth.sendPasswordResetEmail(email)
+            .then(() => {
+                alert("تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني. يرجى التحقق من البريد في خانة الرسائل الغير مرغوب بها .");
+            })
+            .catch((error) => {
+                let errorMessage = "حدث خطأ. يرجى المحاولة مرة أخرى.";
+                if (error.code === "auth/user-not-found") {
+                    errorMessage = "هذا البريد الإلكتروني غير مسجل. يرجى التحقق من البريد الإلكتروني والمحاولة مرة أخرى.";
+                } else if (error.code === "auth/invalid-email") {
+                    errorMessage = "صيغة البريد الإلكتروني غير صحيحة.";
+                }
+                alert(errorMessage);
+                console.error("Password reset error:", error);
+            });
+    } else {
+        alert("يرجى إدخال بريدك الإلكتروني أولاً في الحقل المخصص.");
+    }
+}
+
+    // دالة جديدة لعرض صفحة المشاركة في نفس الصفحة
+    function renderSharePage(projectData) {
+        // إخفاء الصفحات الأخرى وعرض صفحة المشاركة
+        mainPage.classList.add("hidden");
+        projectPage.classList.add("hidden");
+        dayPage.classList.add("hidden");
+        sharePage.classList.remove("hidden");
+
+        // ملء بيانات المشروع في صفحة المشاركة
+        document.getElementById("shareProjTitle").innerText = projectData.name;
+
+        let progress = Math.round(((projectData.days ? projectData.days.length : 0) / projectData.duration) * 100);
+        if(progress > 100) progress = 100;
+        let bar = document.getElementById("shareProjProgress");
+        bar.style.width = progress + "%";
+        bar.innerText = progress + "%";
+
+        let start=new Date(projectData.startDate);
+        let end=new Date(start);
+        end.setDate(start.getDate()+projectData.duration);
+        let left=Math.max(0,Math.ceil((end-new Date())/(1000*60*60*24)));
+        document.getElementById("shareDaysLeft").innerText="⏳ متبقي "+left+" يوم";
+        document.getElementById("shareProjCost").innerText="💰 التكلفة: "+(projectData.cost || 0).toLocaleString();
+
+        // الدفعات
+        const paymentsList = document.getElementById("sharePaymentsList");
+        paymentsList.innerHTML = (projectData.payments || []).map(pay => `<div>💵 ${pay.amount.toLocaleString()} | 📅 ${pay.date}</div>`).join("") || "لا توجد دفعات مسجلة.";
+
+        // الأيام
+        const daysList = document.getElementById("shareDaysList");
+        daysList.innerHTML = "";
+        (projectData.days || []).forEach((d,i)=>{
+            const div = document.createElement("div");
+            div.className = "day";
+            div.innerHTML=`
+                <b>اليوم ${i+1} - ${d.date} (${getDayName(d.date)})</b>
+                <table>
+                    <tr><th>🔨 العمل</th><td>${(d.workDescription||"-").replace(/\n/g,"<br>")}</td></tr>
+                        <tr><th>👷 الكادر</th><td>${(d.workersDetail||"-").replace(/\n/g,"<br>")}</td></tr>
+                        <tr><th>💰 المبالغ</th><td>${(d.costDetail||"-").replace(/\n/g,"<br>")}</td></tr>
+                </table>
+                <div>${(d.media||[]).map(src=>`<img src="${src}" onclick="openFullscreen('${src}')">`).join("")}</div>
+            `;
+            daysList.appendChild(div);
+        });
+    }
+// Function to handle shared project links
+function handleShareLink() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedProjectId = urlParams.get('share');
+    const sharedDays = urlParams.get('days');
+
+    if (sharedProjectId) {
+        database.ref(`projects`).once('value').then(snapshot => {
+            let foundProject = null;
+            snapshot.forEach(userSnapshot => {
+                userSnapshot.forEach(projectSnapshot => {
+                    if (projectSnapshot.key === sharedProjectId) {
+                        foundProject = projectSnapshot.val();
+                        foundProject.id = projectSnapshot.key;
+                    }
+                });
+            });
+
+            if (foundProject) {
+                // If specific days are selected for sharing
+                if (sharedDays) {
+                    const daysIndices = sharedDays.split(',').map(Number);
+                    foundProject.days = foundProject.days.filter((day, index) => daysIndices.includes(index));
+                }
+
+                hideAllPages();
+                renderSharePage(foundProject);
+            } else {
+                alert("المشروع غير موجود.");
+                window.location.href = window.location.origin + window.location.pathname;
+            }
+        }).catch(error => {
+            console.error("Error fetching shared project:", error);
+            alert("حدث خطأ أثناء تحميل المشروع.");
+            window.location.href = window.location.origin + window.location.pathname;
+        });
+        return true;
+    }
+    return false;
+}
+    // 🌙 وظائف الوضع الليلي
+    document.addEventListener('DOMContentLoaded', (event) => {
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+
+        const currentTheme = localStorage.getItem("theme");
+        if (currentTheme === "dark") {
+            document.body.classList.add("light-mode");
+        } else if (currentTheme === "light") {
+            document.body.classList.remove("light-mode");
+        } else if (prefersDarkScheme.matches) {
+            document.body.classList.remove("light-mode");
+        } else {
+            document.body.classList.add("light-mode");
+        }
+        
+        function updateDarkModeIcon() {
+            if (document.body.classList.contains("light-mode")) {
+                darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            }
+        }
+        
+        updateDarkModeIcon();
+
+        // تبديل الوضع الليلي
+        darkModeToggle.addEventListener('click', () => {
+            document.body.classList.toggle("light-mode");
+            if (document.body.classList.contains("light-mode")) {
+                localStorage.setItem("theme", "dark");
+            } else {
+                localStorage.setItem("theme", "light");
+            }
+            updateDarkModeIcon();
+        });
+    });
+
+
+</script>
+
+</body>
+</html>
