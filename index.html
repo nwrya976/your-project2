@@ -487,6 +487,47 @@
             display: none !important;
         }
 
+/* تحسين العرض على الهواتف */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px 10px;
+        margin-top: 40px;
+    }
+
+    h1 {
+        font-size: 22px;
+    }
+
+    h2, h3 {
+        font-size: 18px;
+    }
+
+    input, select, textarea, button {
+        font-size: 0.9rem;
+        padding: 8px 10px;
+    }
+
+    /* يخلي الجدول يلف يمين ويسار */
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    th, td {
+        font-size: 0.85rem;
+        padding: 6px;
+    }
+
+    /* يخلي الأزرار جنب بعض */
+    .inline-buttons {
+        flex-direction: column;
+    }
+
+    .inline-buttons button {
+        width: 100%;
+    }
+}
 
     </style>
 </head>
@@ -1548,4 +1589,5 @@ function handleShareLink() {
 </script>
 
 </body>
+
 </html>
