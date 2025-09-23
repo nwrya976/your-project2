@@ -1592,19 +1592,12 @@ function handleShareLink() {
     const sharedDays = urlParams.get('days');
 
     if (sharedToken) {
-        database.ref('projects').once('value').then(snapshot => {
-            let foundProject = null;
-            snapshot.forEach(userSnapshot => {
-                userSnapshot.forEach(projectSnapshot => {
-                    const project = projectSnapshot.val();
-                    if (project.shareToken === sharedToken) {
-                        foundProject = project;
-                        foundProject.id = projectSnapshot.key;
-                    }
-                });
-            });
-
-            if (foundProject) {
+        // البحث عن المشروع باستخدام التوكن من خلال مسار "shareProjects"
+        database.ref('shareProjects').orderByChild('shareToken').equalTo(sharedToken).once('value').then(snapshot => {
+            const projectData = snapshot.val();
+            if (projectData) {
+                const foundProject = Object.values(projectData)[0]; // get the first object
+                
                 if (sharedDays) {
                     const daysIndices = sharedDays.split(',').map(Number);
                     foundProject.days = foundProject.days.filter((day, index) => daysIndices.includes(index));
@@ -1666,4 +1659,5 @@ function handleShareLink() {
 
 </body>
 </html>
+
 
