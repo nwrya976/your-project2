@@ -1592,11 +1592,13 @@ function handleShareLink() {
     const sharedDays = urlParams.get('days');
 
     if (sharedToken) {
-        // البحث عن المشروع باستخدام التوكن من خلال مسار "shareProjects"
-        database.ref('shareProjects').orderByChild('shareToken').equalTo(sharedToken).once('value').then(snapshot => {
-            const projectData = snapshot.val();
-            if (projectData) {
-                const foundProject = Object.values(projectData)[0]; // get the first object
+        // البحث عن المشروع بشكل مباشر باستخدام الرمز الفريد في مسار 'projects'
+        database.ref('projects').orderByChild('shareToken').equalTo(sharedToken).once('value').then(snapshot => {
+            const projectsData = snapshot.val();
+            if (projectsData) {
+                // Since the query returns a list of projects, we get the first one.
+                const projectId = Object.keys(projectsData)[0];
+                const foundProject = projectsData[projectId];
                 
                 if (sharedDays) {
                     const daysIndices = sharedDays.split(',').map(Number);
@@ -1659,5 +1661,6 @@ function handleShareLink() {
 
 </body>
 </html>
+
 
 
