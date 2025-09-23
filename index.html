@@ -748,21 +748,27 @@
     let isLoginMode = true;
     
     // Check for user login state
-    auth.onAuthStateChanged(user => {
-        if (handleShareLink()) {
-            return;
-        }
-        
-        if (user) {
-            currentUser = user;
-            showMainApp();
+   // استمع لحالة المصادقة
+firebase.auth().onAuthStateChanged(user => {
+    if (user) {
+        // المستخدم مسجل الدخول
+        document.getElementById("mainContent").style.display = "block";
+        document.getElementById("authPage").classList.add("hidden");
+        // تحقق من وجود رابط مشاركة بعد تسجيل الدخول
+        if (!handleShareLink()) {
             loadProjects();
-        } else {
-            currentUser = null;
-            hideAllPages();
-            authPage.classList.remove('hidden');
         }
-    });
+    } else {
+        // المستخدم غير مسجل
+        document.getElementById("mainContent").style.display = "none";
+        document.getElementById("authPage").classList.remove("hidden");
+        // إذا كان هناك رابط مشاركة، لا تفعل شيئاً حالياً
+        // سيعيد توجيه المستخدم بعد تسجيل الدخول
+        if (!new URLSearchParams(window.location.search).get('shareToken')) {
+            loadProjects();
+        }
+    }
+});
 
     // Initial check for shared links
     handleShareLink();
@@ -1586,39 +1592,48 @@ function shareProject() {
     }
 
   // Function to handle shared project links
+// دالة للتعامل مع روابط المشاركة
 function handleShareLink() {
     const urlParams = new URLSearchParams(window.location.search);
     const sharedToken = urlParams.get('shareToken');
-    const sharedDays = urlParams.get('days');
-
-    if (sharedToken) {
-        // البحث عن المشروع بشكل مباشر باستخدام الرمز الفريد في مسار 'projects'
-        database.ref('projects').orderByChild('shareToken').equalTo(sharedToken).once('value').then(snapshot => {
-            const projectsData = snapshot.val();
-            if (projectsData) {
-                // Since the query returns a list of projects, we get the first one.
-                const projectId = Object.keys(projectsData)[0];
-                const foundProject = projectsData[projectId];
-                
-                if (sharedDays) {
-                    const daysIndices = sharedDays.split(',').map(Number);
-                    foundProject.days = foundProject.days.filter((day, index) => daysIndices.includes(index));
-                }
-
-                hideAllPages();
-                renderSharePage(foundProject);
-            } else {
-                alert("المشروع غير موجود. تأكد من صحة الرابط.");
-                window.location.href = window.location.origin + window.location.pathname;
-            }
-        }).catch(error => {
-            console.error("Error fetching shared project:", error);
-            alert("حدث خطأ أثناء تحميل المشروع.");
-            window.location.href = window.location.origin + window.location.pathname;
-        });
-        return true;
+    
+    // إذا لم يكن هناك رمز مشاركة، لا تفعل شيئاً
+    if (!sharedToken) {
+        return false;
     }
-    return false;
+
+    // إذا لم يكن المستخدم مسجلاً، توقف هنا
+    if (!firebase.auth().currentUser) {
+        return false;
+    }
+    
+    // إذا وصل الكود إلى هنا، فهذا يعني أن هناك رمز مشاركة والمستخدم مسجل
+    database.ref('projects').orderByChild('shareToken').equalTo(sharedToken).once('value').then(snapshot => {
+        const projectsData = snapshot.val();
+        if (projectsData) {
+            const projectId = Object.keys(projectsData)[0];
+            const foundProject = projectsData[projectId];
+            
+            // تحقق من الأيام المشتركة (إذا كانت موجودة)
+            const sharedDays = urlParams.get('days');
+            if (sharedDays) {
+                const daysIndices = sharedDays.split(',').map(Number);
+                foundProject.days = foundProject.days.filter((day, index) => daysIndices.includes(index));
+            }
+
+            hideAllPages();
+            renderSharePage(foundProject);
+        } else {
+            alert("المشروع غير موجود. تأكد من صحة الرابط.");
+            window.location.href = window.location.origin + window.location.pathname;
+        }
+    }).catch(error => {
+        console.error("Error fetching shared project:", error);
+        alert("حدث خطأ أثناء تحميل المشروع.");
+        window.location.href = window.location.origin + window.location.pathname;
+    });
+
+    return true;
 }
     // 🌙 وظائف الوضع الليلي
     document.addEventListener('DOMContentLoaded', (event) => {
@@ -1661,6 +1676,7 @@ function handleShareLink() {
 
 </body>
 </html>
+
 
 
 
